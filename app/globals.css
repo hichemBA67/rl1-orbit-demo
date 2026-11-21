@@ -1,26 +1,120 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0d1117;
+  --bg-raised: #111820;
+  --bg-card: rgba(255, 255, 255, 0.035);
+  --bg-card-hover: rgba(255, 255, 255, 0.07);
+  --fg: #e8edf7;
+  --fg-muted: rgba(232, 237, 247, 0.6);
+  --fg-dim: rgba(232, 237, 247, 0.42);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --accent: #3b6fff;
+  --accent-soft: rgba(59, 111, 255, 0.14);
+  --ok: #3ccf91;
+  --ok-soft: rgba(60, 207, 145, 0.13);
+  --bad: #ff6b6b;
+  --bad-soft: rgba(255, 107, 107, 0.13);
+  --warn: #f5b649;
+  --warn-soft: rgba(245, 182, 73, 0.13);
+  --violet: #a78bfa;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-raised: var(--bg-raised);
+  --color-card: var(--bg-card);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-dim: var(--fg-dim);
+  --color-line: var(--border);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --color-bad: var(--bad);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html { color-scheme: dark; }
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+::selection { background: var(--accent-soft); }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.card-h { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.card-b { padding: 16px 18px; }
+.eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-dim); font-weight: 600; }
+.h1 { font-size: clamp(26px, 3.4vw, 38px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.h2 { font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
+.h3 { font-size: 15px; font-weight: 600; }
+.muted { color: var(--fg-muted); }
+.dim { color: var(--fg-dim); }
+.mono { font-family: var(--font-code), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.num { font-variant-numeric: tabular-nums; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+  padding: 7px 13px; border-radius: 9px; font-size: 13px; font-weight: 550;
+  border: 1px solid var(--border-strong); background: var(--bg-card); color: var(--fg);
+  transition: background 0.15s, border-color 0.15s; cursor: pointer; white-space: nowrap;
+}
+.btn:hover { background: var(--bg-card-hover); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary:hover { background: #5b85ff; }
+.btn-ok { background: var(--ok-soft); border-color: rgba(60,207,145,0.4); color: var(--ok); }
+.btn-bad { background: var(--bad-soft); border-color: rgba(255,107,107,0.4); color: var(--bad); }
+.btn-sm { padding: 4px 9px; font-size: 12px; border-radius: 7px; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; border: 1px solid var(--border-strong); color: var(--fg-muted); white-space: nowrap;
+}
+.chip-accent { background: var(--accent-soft); color: #8fb0ff; border-color: rgba(59,111,255,0.35); }
+.chip-ok { background: var(--ok-soft); color: var(--ok); border-color: rgba(60,207,145,0.35); }
+.chip-bad { background: var(--bad-soft); color: var(--bad); border-color: rgba(255,107,107,0.35); }
+.chip-warn { background: var(--warn-soft); color: var(--warn); border-color: rgba(245,182,73,0.35); }
+.chip-violet { background: rgba(167,139,250,0.13); color: var(--violet); border-color: rgba(167,139,250,0.35); }
+
+.input, .select {
+  background: var(--bg-raised); border: 1px solid var(--border-strong); border-radius: 8px;
+  padding: 7px 10px; font-size: 13px; color: var(--fg); width: 100%;
+}
+.input:focus, .select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+label.lbl { font-size: 11px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; display: block; margin-bottom: 4px; }
+
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th { text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-dim); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+table.t td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.t tr:hover td { background: rgba(255,255,255,0.02); }
+table.t td.r, table.t th.r { text-align: right; }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tab { padding: 9px 14px; font-size: 13px; font-weight: 550; color: var(--fg-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; cursor: pointer; }
+.tab:hover { color: var(--fg); }
+.tab[data-active="true"] { color: var(--fg); border-color: var(--accent); }
+
+.scroll-x { overflow-x: auto; }
+.code {
+  font-family: var(--font-code), ui-monospace, monospace; font-size: 12px; line-height: 1.6;
+  background: #0a0e14; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; overflow: auto; white-space: pre;
+}
+.kw { color: #c792ea; } .ty { color: #82aaff; } .cm { color: #637777; } .st { color: #c3e88d; } .fn { color: #ffcb6b; }
+
+.timeline-dot { width: 10px; height: 10px; border-radius: 999px; background: var(--border-strong); flex: none; }
+.prose-sm p { margin: 0 0 8px; }
+.prose-sm ul { list-style: disc; padding-left: 18px; }
+.prose-sm li { margin: 3px 0; }
+
+@keyframes flash { from { background: rgba(59,111,255,0.25); } to { background: transparent; } }
+.flash { animation: flash 1.2s ease-out; }

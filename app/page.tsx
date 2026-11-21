@@ -1,103 +1,127 @@
-import Image from "next/image";
+"use client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArchDiagram } from "@/components/ArchDiagram";
+import { Callout, Card, PageHead, Stat } from "@/components/ui";
+import { COUNTRY, ISSUERS, PROGRAMME, isinOf } from "@/lib/data/scenario";
+import { useStore } from "@/lib/store";
+import { checkEligibility, isEligible } from "@/lib/eligibility";
+import { compact, cx, fmtDate } from "@/lib/util";
+
+const MODEL_LABEL: Record<string, string> = {
+  ES_ERIR: "ERIR register (Ley 6/2023)",
+  FR_DEEP: "DEEP inscription (CMF)",
+  DE_EWPG: "Crypto-securities register (eWpG)",
+  AT_CSD_DLT: "CSD-operated DLT (OeKB)",
+  CONTRACTUAL: "Contractual register",
+};
+
+const MODULES = [
+  { href: "/participants/", n: "01", t: "Participants & roles", d: "Every institution, its legal form, its supervisor, and exactly what it does in ORBIT." },
+  { href: "/primary/", n: "02", t: "Primary market", d: "Steps from T-30 to T+2 per jurisdiction. Live book-building, pricing maths, allocation and atomic DvP issuance." },
+  { href: "/registrar/", n: "03", t: "Registrar, technically", d: "What a 'registrar' means under each law and on-chain: register state, compliance, freezes, forced transfers, migration." },
+  { href: "/secondary/", n: "04", t: "Seturion DLT TSS", d: "Order book with price-time priority, pre-trade checks, clean/dirty pricing, T+0 atomic settlement and MiFIR transparency." },
+  { href: "/eligibility/", n: "05", t: "OeKB & ECB eligibility", d: "Why Erste and RBI go through OeKB CSD. Eligibility checker, close-links and own-use rules, ECMS pledge." },
+  { href: "/lifecycle/", n: "06", t: "Lifecycle & servicing", d: "Coupon schedule, record dates, payments via Pontes or USD tokens, registrar migration, redemption and burn." },
+  { href: "/architecture/", n: "07", t: "Architecture & contracts", d: "RL1 network, roles and keys, Solidity interfaces, ISO 20022 message map, data flows." },
+  { href: "/legal/", n: "08", t: "Legal basis", d: "About 35 instruments across EU, Eurosystem, ES, FR, DE, AT, NL, GB, LU and US, with a jurisdiction matrix and glossary." },
+];
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { s, quickIssueAll } = useStore();
+  const router = useRouter();
+  const usdCount = ISSUERS.filter((i) => s.bonds[i.id].ccy === "USD").length;
+  const eurCount = ISSUERS.length - usdCount;
+  const totalEur = usdCount * (PROGRAMME.size / PROGRAMME.fx) + eurCount * PROGRAMME.size;
+  const capPct = (totalEur / PROGRAMME.pilotCaps.dltMiAggregateEUR) * 100;
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <>
+      <PageHead
+        eyebrow="Regulated Layer One · Programme demo"
+        title="RL1 ORBIT: thirteen issuers, six legal systems, one ledger"
+        actions={
+          <>
+            <button className="btn btn-primary" onClick={() => { quickIssueAll(); router.push("/secondary/"); }}>
+              ⚡ Issue all 13 & open Seturion
+            </button>
+            <Link href="/primary/" className="btn">Walk through primary →</Link>
+          </>
+        }
+      >
+        Cecabank coordinates a joint DLT bond programme on RL1. Eleven institutions, including Natixis, Crédit Mutuel Alliance Fédérale (via BFCM) and NatWest, each issue a <b>USD 100m</b> 3-year senior bond
+        under the law of their home country. Erste Group and Raiffeisen Bank International issue <b>EUR 100m</b> each through{" "}
+        <b>OeKB CSD</b>, which holds the global note, assigns the AT ISINs and runs a CSD-operated DLT service. That route makes
+        them <b>Eurosystem-eligible</b>. All tranches trade and settle on the <b>Seturion DLT TSS</b>.
+      </PageHead>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <Stat label="Issuers" value={ISSUERS.length} sub="8 members · 1 pending (NatWest) · 4 non-members" />
+        <Stat label="Jurisdictions" value="6" sub="ES · FR · NL · DE · AT · GB" />
+        <Stat label="Register models" value="5" sub="ERIR · DEEP · eWpG · CSD · contractual" />
+        <Stat label="Programme size" value={`${compact(usdCount * 1e8)} + ${compact(eurCount * 1e8, "EUR")}`} sub={`≈ €${(totalEur / 1e9).toFixed(2)}bn`} tone="accent" />
+        <Stat label="Pilot cap used" value={`${capPct.toFixed(1)}%`} sub="of Seturion's €6bn DLT MI limit" tone="ok" />
+      </div>
+
+      <div className="mt-6">
+        <Callout tone="warn" title="Why the Austrian tranches are in EUR, not USD">
+          Eurosystem collateral must be <b>denominated in euro</b>. A USD bond fails that criterion whichever CSD or ledger it sits on.
+          So the scenario keeps the USD 100m tranches for the other eleven issuers and gives Erste and RBI EUR 100m each. That way the
+          OeKB route makes them eligible. You can switch them to USD on the <Link href="/eligibility/" className="text-accent underline">ECB page</Link> to watch the check fail.
+        </Callout>
+      </div>
+
+      <Card title="System map" className="mt-6">
+        <ArchDiagram />
+      </Card>
+
+      <h2 className="h2 mt-10 mb-4">Modules</h2>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {MODULES.map((m) => (
+          <Link key={m.href} href={m.href} className="card p-4 transition-colors hover:bg-[var(--bg-card-hover)]">
+            <div className="mono text-accent text-[11px]">{m.n}</div>
+            <div className="h3 mt-1">{m.t}</div>
+            <p className="muted mt-1.5 text-[12.5px] leading-relaxed">{m.d}</p>
+          </Link>
+        ))}
+      </div>
+
+      <Card title="Tranches" className="mt-10" pad={false} right={<span className="dim text-[12px]">Pricing {fmtDate(PROGRAMME.pricingDate)} · Issue {fmtDate(PROGRAMME.issueDate)} · Maturity {fmtDate(PROGRAMME.maturityDate)}</span>}>
+        <div className="scroll-x">
+          <table className="t">
+            <thead>
+              <tr>
+                <th>Issuer</th><th>Law</th><th>Register model</th><th>Registrar</th><th>ISIN</th><th>Ccy</th><th className="r">Coupon</th><th>Status</th><th>ECB</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ISSUERS.map((i) => {
+                const b = s.bonds[i.id];
+                const el = isEligible(checkEligibility({ issuer: i, ccy: b.ccy }));
+                return (
+                  <tr key={i.id}>
+                    <td><span className="mr-1.5">{COUNTRY[i.country].flag}</span><b>{i.brand}</b><div className="dim text-[11.5px]">{i.issuer}</div></td>
+                    <td>{i.law}</td>
+                    <td><span className="chip">{MODEL_LABEL[i.registerModel]}</span></td>
+                    <td className="muted">{b.registrarName}</td>
+                    <td className="mono">{isinOf(i)}</td>
+                    <td>{b.ccy}</td>
+                    <td className="r mono">{b.couponPct ? b.couponPct.toFixed(3) + "%" : "—"}</td>
+                    <td><span className={cx("chip", b.status === "settled" ? "chip-ok" : b.status === "priced" ? "chip-accent" : b.status === "redeemed" ? "" : "chip-warn")}>{b.status}</span></td>
+                    <td>{el ? <span className="chip chip-ok">eligible</span> : <span className="chip">no</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </Card>
+
+      <p className="dim mt-6 text-[12px] leading-relaxed">
+        Status of facts as of {fmtDate("2026-11-21")}: RL1 operates as an SCE in Luxembourg (launched July 2026). Seturion received its DLT TSS licence from BaFin in October 2026.
+        The Eurosystem accepts DLT-based marketable assets issued through CSD-operated DLT services from 30 March 2026. All issuances, spreads, ratings, ISINs, investors and role
+        allocations in this demo are hypothetical.
+      </p>
+    </>
   );
 }
