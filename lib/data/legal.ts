@@ -56,7 +56,7 @@ export const LEGAL: LegalItem[] = [
     summary:
       "Requires transferable securities admitted to trading on a trading venue to be in book-entry form at a CSD, and sets authorisation, prudential and conduct rules for CSDs and settlement discipline.",
     orbit:
-      "Governs OeKB CSD's role as issuer CSD for the Austrian tranches, including integrity of the issue. For the other tranches, Seturion relies on the Pilot Regime's tailored exemptions from CSDR requirements.",
+      "Governs OeKB CSD's role as issuer CSD for all 12 tranches, including integrity of the issue (Art. 37) and the issuer's freedom to choose an EU CSD in another Member State (Art. 49). Seturion's Pilot Regime licence covers trading and DvP orchestration; final book entries sit at OeKB.",
     provisions: [
       "Art. 3 — book-entry form (immobilisation or direct dematerialised issuance); Art. 3(2) for securities traded on trading venues",
       "Art. 7 — settlement discipline (cash penalties for settlement fails)",
@@ -102,7 +102,7 @@ export const LEGAL: LegalItem[] = [
     summary:
       "A prospectus is required for public offers or for admission to a regulated market, unless an exemption applies.",
     orbit:
-      "The USD tranches use the wholesale exemptions: offer only to qualified investors and a minimum denomination of $200,000 (above the €100,000 threshold), with admission to the Seturion DLT TSS rather than a regulated market. The Austrian EUR tranches are admitted to the Wiener Börse regulated market, so they need an FMA-approved base prospectus and final terms.",
+      "The USD tranches use the wholesale exemptions: offer only to qualified investors and a minimum denomination of $200,000 (above the €100,000 threshold), with admission to the Seturion DLT TSS rather than a regulated market. The Austrian EUR tranches use the same exemptions (€100,000 denomination). No tranche is listed on an exchange, so no approved prospectus is needed.",
     provisions: [
       "Art. 1(4)(a) — offer addressed solely to qualified investors",
       "Art. 1(4)(c) — denomination per unit of at least €100,000",
@@ -134,7 +134,7 @@ export const LEGAL: LegalItem[] = [
     summary:
       "Simplifies the creation and enforcement of title-transfer and security financial collateral, including close-out netting.",
     orbit:
-      "Underpins pledges of ORBIT bonds: repo between members, and pledges to the Eurosystem of the Austrian tranches. Art. 9 points to the law of the country where the relevant account is maintained (PRIMA).",
+      "Underpins pledges of ORBIT bonds: repo between members, and pledges to the Eurosystem of the eligible (EUR, EEA-issuer) tranches. Art. 9 points to the law of the country where the relevant account is maintained (PRIMA).",
     provisions: [
       "Art. 2 — title transfer vs security financial collateral; 'book entry securities collateral'",
       "Art. 4 — enforcement without notice or court approval",
@@ -234,7 +234,7 @@ export const LEGAL: LegalItem[] = [
     summary:
       "Eligibility criteria for marketable assets. These cover asset type, principal and coupon structure, non-subordination, place of issue and settlement (EEA, eligible SSS), acceptable markets, issuer type and establishment, governing law, euro denomination and credit quality, plus close-links and own-use rules, haircuts and valuation.",
     orbit:
-      "The eligibility checker on the ECB page applies these criteria to every ORBIT tranche. Only the Austrian EUR tranches issued via OeKB CSD pass all of them.",
+      "The eligibility checker on the ECB page applies these criteria to every ORBIT tranche. OeKB makes every tranche pass the CSD / place-of-issue criterion. The remaining blockers are currency (USD fails) and issuer/law (UK issuers fail). With the defaults, Erste and RBI (EUR) pass, assuming the Eurosystem accepts Seturion as an acceptable non-regulated market, since no tranche is listed on an exchange.",
     provisions: [
       "Marketable debt instrument with a fixed, unconditional principal amount",
       "Coupon structure: fixed, zero or eligible floating",
@@ -255,7 +255,7 @@ export const LEGAL: LegalItem[] = [
     summary:
       "From 30 March 2026 the Eurosystem accepts marketable assets issued in CSD-operated DLT services, provided they meet all standard eligibility criteria and are available in eligible SSSs reachable via T2S. Assets that exist only on DLT outside eligible SSSs remain under study, with a staggered approach.",
     orbit:
-      "This is why Erste and RBI use OeKB CSD. Issuance through a CSD-operated DLT service puts the bonds in the 'phase 1' accepted category. The Pilot-Regime-only tranches settled on Seturion fall into the 'still under study' category.",
+      "This is why every ORBIT tranche uses OeKB CSD. Issuance through a CSD-operated DLT service puts all bonds in the 'phase 1' accepted category. Without OeKB, DLT-register-only bonds settled on Seturion would fall into the 'still under study' category.",
     provisions: ["Same eligibility criteria and mobilisation process as for other marketable assets", "Availability in eligible SSSs that comply with CSDR and are reachable via T2S"],
   },
   {
@@ -306,7 +306,7 @@ export const LEGAL: LegalItem[] = [
     citation: "As amended by Ordonnance n° 2017-1674 and Décret n° 2018-1226",
     summary:
       "Securities not admitted to a CSD may be inscribed in a shared electronic recording device (DEEP, 'dispositif d'enregistrement électronique partagé'). Inscription there has the same effect as inscription in a securities account.",
-    orbit: "The CACEIS, Natixis and BFCM tranches are registered securities inscribed in a DEEP on RL1. CACEIS Corporate Trust keeps the register.",
+    orbit: "The CACEIS, Natixis and BFCM tranches are registered securities inscribed in a DEEP on RL1, with OeKB CSD inscribed as holder. CACEIS Corporate Trust keeps the CACEIS register; Chartered Investment keeps the Natixis and BFCM registers.",
     provisions: [
       "L.211-3 — securities inscribed in an account kept by the issuer or an intermediary, or in a DEEP",
       "L.211-7 — transfer by inscription in the DEEP",
@@ -329,7 +329,7 @@ export const LEGAL: LegalItem[] = [
     summary:
       "Lets bearer bonds (and certain fund units and shares) be issued as electronic securities, with no physical certificate, by entry in a central register or a crypto-securities register (Kryptowertpapierregister).",
     orbit:
-      "The DekaBank, DZ BANK, LBBW and Chartered Investment tranches are crypto securities. The registrar (registerführende Stelle) keeps the register on RL1.",
+      "The DekaBank, DZ BANK and LBBW tranches are crypto securities. Chartered Investment, as registerführende Stelle, keeps the register on RL1 with a collective entry (§8) for OeKB CSD.",
     provisions: [
       "§2 — the electronic security has the same effect as a certificated one",
       "§4(3) — crypto security: entered in a crypto-securities register",
@@ -346,8 +346,24 @@ export const LEGAL: LegalItem[] = [
     title: "Kreditwesengesetz — crypto-securities registry management as a financial service",
     citation: "KWG §1(1a) sentence 2 no. 8",
     summary: "Running a crypto-securities register is a licensable financial service supervised by BaFin.",
-    orbit: "DekaBank Registry Services and the SWIAT registry need this licence to act as registrar.",
+    orbit: "Chartered Investment needs this licence to keep the crypto-securities registers of the German tranches. The scenario assumes it holds it.",
     provisions: ["§1(1a) S.2 Nr. 8 — Kryptowertpapierregisterführung", "§32 — licence requirement"],
+  },
+  {
+    id: "kagb", short: "KAGB (special fund)", juris: "DE", topics: ["Offering", "Register & title"],
+    title: "Kapitalanlagegesetzbuch (German Investment Code)",
+    citation: "KAGB of 4 July 2013, as amended (incl. Fondsstandortgesetz 2021 and Zukunftsfinanzierungsgesetz 2023)",
+    summary:
+      "Regulates investment funds and their managers. A Spezial-AIF may only be held by professional and semi-professional investors. Fund units of a German investment fund can be issued as electronic unit certificates under the eWpG, including in a crypto-securities register.",
+    orbit:
+      "The ORBIT Special Fund, initiated by Chartered Investment, is an open-ended domestic Spezial-AIF with fixed investment conditions. It buys a basket of ORBIT bonds. A licensed KVG manages it, a depositary holds the assets, and Chartered Investment keeps the electronic unit register on RL1.",
+    provisions: [
+      "§1(6): Spezial-AIF: units held only by professional and semi-professional investors",
+      "§20 ff.: licence of the management company (KVG)",
+      "§80 ff.: depositary (Verwahrstelle) for AIF",
+      "§95: unit certificates, including electronic unit certificates (with the eWpG)",
+      "§284: open-ended domestic Spezial-AIF with fixed investment conditions",
+    ],
   },
   // ------------------------------------------------------------------ AT
   {
@@ -357,7 +373,7 @@ export const LEGAL: LegalItem[] = [
     summary:
       "Governs custody of securities, including collective custody (Sammelverwahrung) and global certificates (Sammelurkunde) deposited with the CSD. Investors hold co-ownership interests in the collective holding.",
     orbit:
-      "Austria has no statute for native DLT debt securities, so the scenario does not rely on one. Legal title sits in the global note held by OeKB CSD, and the token balances on RL1 are the CSD's book-entry layer. That is the 'rubber stamp'.",
+      "OeKB CSD is issuer CSD for every ORBIT tranche, so Austrian custody law governs the CSD layer for all of them. Investors hold co-ownership in OeKB's collective holding; the token balances on RL1 are OeKB's book entries. That is the 'rubber stamp'.",
     provisions: ["Collective custody and global certificate provisions", "Co-ownership of the collective holding; transfer by book entry"],
   },
   {
@@ -365,16 +381,8 @@ export const LEGAL: LegalItem[] = [
     title: "Kapitalmarktgesetz 2019",
     citation: "BGBl. I Nr. 62/2019",
     summary: "Austrian accompanying rules to the EU Prospectus Regulation; the FMA is the competent authority.",
-    orbit: "The FMA approves the base prospectus that the Erste and RBI tranches need for Wiener Börse admission.",
+    orbit: "Not triggered: the Erste and RBI tranches are wholesale (€100,000 denomination, qualified investors only) and are not admitted to a regulated market, so no FMA-approved prospectus is needed.",
     provisions: ["FMA as competent authority for prospectus approval"],
-  },
-  {
-    id: "at-boerseg", short: "BörseG 2018", juris: "AT", topics: ["Trading"],
-    title: "Börsegesetz 2018",
-    citation: "BGBl. I Nr. 107/2017",
-    summary: "Regulated market operation and admission to the Official Market (Amtlicher Handel) of Wiener Börse.",
-    orbit: "The regulated-market listing makes the Austrian tranches meet the Eurosystem's acceptable-market criterion.",
-    provisions: ["Admission to listing on the Official Market"],
   },
   // ------------------------------------------------------------------ NL
   {
@@ -384,7 +392,7 @@ export const LEGAL: LegalItem[] = [
     summary:
       "There is no dedicated DLT-securities statute. Registered (op naam) instruments transfer by deed of assignment plus notification. Book-entry securities fall under the Wge regime at Euroclear Nederland.",
     orbit:
-      "ABN AMRO's tranche uses a contractual register. The Terms & Conditions agree that an on-chain transfer instruction signed by the holder's key is the deed, and that the registrar's entry is the notice to the debtor. Legal opinions confirm this is enforceable.",
+      "ABN AMRO's tranche uses a contractual issuer-level register kept by Chartered Investment, in which OeKB CSD is the registered holder of the whole issue. Investors then hold OeKB book entries, so no BW 3:94 deed is needed per investor transfer.",
     provisions: ["BW 3:94 — deed and notification for registered claims"],
   },
   // ------------------------------------------------------------------ GB
@@ -394,7 +402,7 @@ export const LEGAL: LegalItem[] = [
     citation: "SI 2023/1398 under FSMA 2023 s.13",
     summary: "The UK's sandbox for digital securities infrastructure, the UK counterpart to the EU Pilot Regime.",
     orbit:
-      "Shown for comparison. The English-law tranches of Standard Chartered PLC and NatWest Group plc are offered on an EU venue, not in the UK DSS. The register is contractual under English law.",
+      "Shown for comparison. The English-law tranches of Standard Chartered PLC and NatWest Group plc sit in an EU CSD (OeKB) and trade on an EU venue (Seturion), not in the UK DSS. Chartered Investment keeps the contractual register.",
     provisions: ["Digital securities depository and trading venue modifications"],
   },
   {
@@ -451,52 +459,52 @@ export const JURIS_MATRIX: JurisRow[] = [
     transfer: "Inscription in the DLT registry kept by the ERIR",
     supervisor: "CNMV (issue & ERIR), Banco de España / ECB-SSM (issuer)", nna: "CNMV",
     insolvency: "The DLT entry establishes ownership; investors' positions are segregated from the ERIR's estate",
-    ecbRoute: "Not eligible as structured here (USD, not in an eligible SSS). EUR + Iberclear DLT service would be the route",
+    ecbRoute: "CSD criterion met via OeKB. Fails only on USD; a EUR tranche would be eligible",
   },
   {
     cc: "FR", issuers: "CACEIS Bank, Natixis, BFCM", statute: "CMF L.211-3, L.211-7, R.211-9-7; Ord. 2017-1674", statutoryBasis: "Yes",
-    registrarConcept: "Teneur de registre of a DEEP (CACEIS Corporate Trust)",
+    registrarConcept: "Teneur de registre of a DEEP (CACEIS Corporate Trust for CACEIS; Chartered Investment for Natixis, BFCM)",
     form: "Registered securities (titres nominatifs) inscribed in a DEEP",
     transfer: "Inscription in the DEEP. Same effect as a securities-account entry",
     supervisor: "AMF, ACPR / ECB-SSM", nna: "Euroclear France",
     insolvency: "DEEP inscription establishes ownership against third parties",
-    ecbRoute: "Not eligible as structured here (USD; a DEEP outside a CSD is not an eligible SSS)",
+    ecbRoute: "CSD criterion met via OeKB. Fails only on USD; a EUR tranche would be eligible",
   },
   {
-    cc: "DE", issuers: "DekaBank, DZ BANK, LBBW, Chartered Investment", statute: "eWpG §§4, 8, 16–23; KWG §1(1a) Nr. 8; eWpRV", statutoryBasis: "Yes",
-    registrarConcept: "Registerführende Stelle of a Kryptowertpapierregister (DekaBank Registry Services / SWIAT)",
+    cc: "DE", issuers: "DekaBank, DZ BANK, LBBW", statute: "eWpG §§4, 8, 16–23; KWG §1(1a) Nr. 8; eWpRV", statutoryBasis: "Yes",
+    registrarConcept: "Registerführende Stelle of a Kryptowertpapierregister (Chartered Investment); collective entry for OeKB CSD",
     form: "Electronic bearer bond — crypto security (Kryptowertpapier)",
     transfer: "Instruction by the holder + registry entry (eWpG §24–25). The electronic security counts as a thing (Sache, §2(3))",
     supervisor: "BaFin (registrar & issuer), ECB-SSM (bank issuers)", nna: "WM Datenservice",
     insolvency: "The registered holder is the owner. Segregation is required for collective entries",
-    ecbRoute: "Not eligible as structured here (USD; a crypto-securities register is not an eligible SSS)",
+    ecbRoute: "CSD criterion met via OeKB. Fails only on USD; a EUR tranche would be eligible",
   },
   {
-    cc: "AT", issuers: "Erste Group, Raiffeisen Bank International", statute: "Depotgesetz; CSDR; KMG 2019; BörseG 2018", statutoryBasis: "CSD route",
+    cc: "AT", issuers: "Erste Group, Raiffeisen Bank International", statute: "Depotgesetz; CSDR", statutoryBasis: "CSD route",
     registrarConcept: "Issuer CSD (OeKB CSD) operating a DLT service; global note in collective custody",
     form: "Global note (Sammelurkunde) at OeKB CSD; the token balances are the CSD book-entry layer",
     transfer: "Book entry in the CSD system, represented by the RL1 token transfer executed under OeKB's operator role",
     supervisor: "FMA (CSD & prospectus), OeNB (oversight), ECB-SSM (issuers)", nna: "OeKB",
     insolvency: "Co-ownership in the collective holding under DepG; CSDR segregation",
-    ecbRoute: "ELIGIBLE: EUR, EEA issuer and law, OeKB CSD (eligible SSS via T2S), Wiener Börse regulated market. Covered by the ECB decision effective 30 Mar 2026",
+    ecbRoute: "ELIGIBLE under one assumption: EUR, EEA issuer and law, OeKB CSD (eligible SSS via T2S), covered by the ECB decision effective 30 Mar 2026. No exchange listing, so the acceptable-market criterion assumes the Eurosystem accepts Seturion",
   },
   {
     cc: "NL", issuers: "ABN AMRO", statute: "BW 3:94; Wge (for book-entry)", statutoryBasis: "No (contractual)",
-    registrarConcept: "Contractual registrar under the Agency Agreement (Cecabank)",
+    registrarConcept: "Contractual registrar under the Agency Agreement (Chartered Investment); OeKB CSD registered holder",
     form: "Registered notes (op naam) with a contractual DLT register",
     transfer: "Deed of assignment (on-chain signed instruction) plus notice (registrar entry)",
     supervisor: "AFM, DNB / ECB-SSM", nna: "Euroclear Nederland",
     insolvency: "Depends on enforceability of the contractual deed and notice mechanics. Legal opinion is essential",
-    ecbRoute: "Not eligible as structured here",
+    ecbRoute: "CSD criterion met via OeKB. Fails only on USD; a EUR tranche would be eligible",
   },
   {
     cc: "GB", issuers: "Standard Chartered PLC, NatWest Group plc", statute: "English common law; Property (Digital Assets etc) Act 2025; Banking Act 2009", statutoryBasis: "Partial",
-    registrarConcept: "Registrar under the Agency Agreement (Cecabank); register is conclusive per T&Cs",
+    registrarConcept: "Registrar under the Agency Agreement (Chartered Investment); OeKB CSD registered holder",
     form: "Registered notes, English law",
     transfer: "Registration of the transferee in the register maintained on RL1",
     supervisor: "PRA / FCA (issuer); EU venue NCA for trading", nna: "London Stock Exchange",
     insolvency: "UK resolution regime; contractual bail-in recognition in the T&Cs",
-    ecbRoute: "Not eligible: non-EEA issuer and governing law, USD",
+    ecbRoute: "Not eligible even with OeKB: non-EEA issuer and governing law (and USD)",
   },
 ];
 

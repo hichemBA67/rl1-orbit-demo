@@ -14,13 +14,16 @@ export interface EligInput {
   ccy: "USD" | "EUR";
   /** Let the user override the settlement route on the ECB page. */
   routeOverride?: "AT_CSD_DLT" | "PILOT_ONLY";
-  listedRegulated?: boolean;
+  /** Scenario assumption: the Eurosystem has accepted Seturion as an acceptable non-regulated market. */
+  seturionAccepted?: boolean;
   cqsOk?: boolean;
 }
 
-export function checkEligibility({ issuer, ccy, routeOverride, listedRegulated, cqsOk }: EligInput): Criterion[] {
-  const csdRoute = routeOverride ? routeOverride === "AT_CSD_DLT" : issuer.registerModel === "AT_CSD_DLT";
-  const regulated = listedRegulated ?? issuer.registerModel === "AT_CSD_DLT";
+export const SETURION_ACCEPTED_ASSUMPTION = true;
+
+export function checkEligibility({ issuer, ccy, routeOverride, seturionAccepted, cqsOk }: EligInput): Criterion[] {
+  const csdRoute = routeOverride ? routeOverride === "AT_CSD_DLT" : true; // OeKB CSD is issuer CSD for every tranche
+  const regulated = seturionAccepted ?? SETURION_ACCEPTED_ASSUMPTION;
   const eea = COUNTRY[issuer.country].eea;
   const cqs = cqsOk ?? !issuer.rating.startsWith("BB ");
   return [
@@ -47,7 +50,9 @@ export function checkEligibility({ issuer, ccy, routeOverride, listedRegulated, 
     },
     {
       key: "market", label: "Admitted to a regulated market or an acceptable non-regulated market", pass: regulated,
-      detail: regulated ? "Listed on the Wiener Börse Official Market (regulated market)." : "Traded only on the Seturion DLT TSS, which has not been assessed as an acceptable non-regulated market.",
+      detail: regulated
+        ? "Admitted to trading on the Seturion DLT TSS only, with no exchange listing. SCENARIO ASSUMPTION: the Eurosystem has assessed Seturion as an acceptable non-regulated market. This is not confirmed; without it, the criterion fails."
+        : "Admitted only to the Seturion DLT TSS, which has not been assessed as an acceptable non-regulated market. With no regulated-market listing, the criterion fails.",
     },
     { key: "cqs", label: "Credit quality ≥ CQS 3 (BBB-) via an accepted ECAI", pass: cqs, detail: `Assumed issuer rating ${issuer.rating}.` },
   ];

@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { BondPicker, Callout, Card, EventLog, LegalRefs, PageHead, Stat, Tabs } from "@/components/ui";
-import { CFI, COUNTRY, ISSUERS, PROGRAMME, cfiExplain, investorById, isinOf, issuerById, termsFor } from "@/lib/data/scenario";
+import { COUNTRY, ISSUERS, PLAIN_VANILLA, PROGRAMME, cfiExplain, cfiOf, investorById, isinOf, issuerById, termsFor } from "@/lib/data/scenario";
 import { PRIMARY_STEPS, allocate, generateBook, ipt } from "@/lib/data/primary";
 import { eligibleForPrimary, priceBondPure, useStore } from "@/lib/store";
 import { couponSchedule, modDuration } from "@/lib/finance";
@@ -63,7 +63,9 @@ function TermSheet({ id }: { id: string }) {
   const fisn = `${i.brand.toUpperCase().replace(/[^A-Z ]/g, "").slice(0, 15).trim()}/${b.couponPct ? b.couponPct.toFixed(3) : "x.xxx"} BD ${PROGRAMME.maturityDate.replaceAll("-", "")}`;
   const rows: [string, React.ReactNode][] = [
     ["Issuer", <>{COUNTRY[i.country].flag} {i.issuer}</>],
+    ["Structure", PLAIN_VANILLA],
     ["Status / ranking", i.seniority],
+    ...(i.guarantee ? [["Guarantee", i.guarantee] as [string, React.ReactNode]] : []),
     ["Nominal", money(PROGRAMME.size, ccy)],
     ["Denomination", `${money(PROGRAMME.denomination[ccy], ccy)} + integral multiples of ${money(PROGRAMME.increment[ccy], ccy)}`],
     ["Coupon", b.couponPct ? `${b.couponPct.toFixed(3)}% fixed` : "set at pricing (yield rounded down to ⅛%)"],
@@ -72,8 +74,9 @@ function TermSheet({ id }: { id: string }) {
     ["Benchmark", PROGRAMME.benchmarks[ccy].name + ` @ ${PROGRAMME.benchmarks[ccy].yield.toFixed(2)}%`],
     ["Re-offer", b.price ? `${b.price.toFixed(3)} / ${b.yieldPct!.toFixed(3)}% (${bp(b.spreadBp!)})` : "—"],
     ["Governing law", i.law],
-    ["Form & register", i.registrarName],
-    ["Venue", i.registerModel === "AT_CSD_DLT" ? "Wiener Börse (Official Market) + Seturion DLT TSS" : "Seturion DLT TSS"],
+    ["Registrar", i.registrarName],
+    ["Issuer CSD", "OeKB CSD GmbH: global note / collective entry, AT ISIN, CSD-operated DLT service"],
+    ["Venue", "Seturion DLT TSS (no exchange listing)"],
     ["Selling restrictions", ccy === "USD" ? "Reg S Cat. 2 · EEA/UK QIs only · no PRIIPs KID" : "EEA/UK QIs · Reg S · no PRIIPs KID"],
     ["Smart contract", <span key="c" className="mono">{b.contract}</span>],
   ];
@@ -95,8 +98,8 @@ function TermSheet({ id }: { id: string }) {
           </div>
           <div className="rounded-lg border border-line p-3">
             <div className="eyebrow">CFI · ISO 10962</div>
-            <div className="mono mt-1 text-[18px]">{CFI}</div>
-            <div className="mt-1 grid grid-cols-2 gap-x-2 text-[11.5px]">{cfiExplain.map(([c, t], k) => <div key={k}><span className="mono text-accent">{c}</span> <span className="dim">{t}</span></div>)}</div>
+            <div className="mono mt-1 text-[18px]">{cfiOf(i)}</div>
+            <div className="mt-1 grid grid-cols-2 gap-x-2 text-[11.5px]">{cfiExplain.map(([c, t], k) => (k === 3 && cfiOf(i)[3] === "T" ? ["T", "Government / state guarantee"] : [c, t])).map(([c, t], k) => <div key={k}><span className="mono text-accent">{c}</span> <span className="dim">{t}</span></div>)}</div>
           </div>
           <div className="rounded-lg border border-line p-3">
             <div className="eyebrow">FISN · ISO 18774</div>
@@ -247,11 +250,14 @@ function Settle({ id, settle }: { id: string; settle: (id: string) => void }) {
   const { s } = useStore();
   const issuer = issuerById(id);
   const b = s.bonds[id];
-  const at = issuer.registerModel === "AT_CSD_DLT";
+  const at = b.ccy === "EUR";
+  const head = [
+    ["Registrar", `${issuer.registrarName}: issuer-level register records OeKB CSD as holder of the whole issue (${issuer.law})`],
+    ["OeKB CSD", "global position booked; mint(escrow, nominal) of investor-level book entries on RL1. totalSupply = global position"],
+  ];
   const seq = at
     ? [
-        ["OeKB CSD", "Sammelurkunde lodged in collective custody (Depotgesetz)"],
-        ["OeKB CSD", "mint(escrow, 100,000,000): book-entry layer on RL1. totalSupply = global note"],
+        ...head,
         ["Pontes adapter", "lock(investor allocation) and emit a settlement request"],
         ["Investor's bank → T2", "pacs.009 for the cash amount in central-bank money"],
         ["T2 → Pontes", "settlement confirmation (finality under the TARGET rules)"],
@@ -259,18 +265,18 @@ function Settle({ id, settle }: { id: string; settle: (id: string) => void }) {
         ["OeKB CSD", "sese.025 confirmation; position visible in T2S for collateral use"],
       ]
     : [
-        ["Registrar", "mint(escrow, nominal): totalSupply = issue amount"],
+        ...head,
         ["Investor custodian", "approve + lock USD settlement token in DvPEscrow"],
         ["Seturion TSS", "settle(tradeId): one transaction that checks compliance and moves both legs"],
         ["ComplianceModule", "canTransfer(escrow, investor, amount) → KYC, Reg S, denomination"],
         ["BondToken", "Transfer(escrow → investor); USD token Transfer(investor → issuer)"],
         ["RL1 consensus", "block committed with BFT finality. The SFD irrevocability point is reached"],
-        ["Registrar", "legal register updated (same state), sese.025 + semt.002 issued"],
+        ["OeKB CSD", "book entries final; sese.025 + semt.002 issued; positions visible in T2S"],
       ];
   return (
     <div className="grid gap-5 xl:grid-cols-[1fr_1.1fr]">
       <div className="space-y-5">
-        <Card title={`DvP sequence: ${at ? "OeKB CSD + Pontes (EUR, central-bank money)" : "Seturion TSS (USD settlement token)"}`}>
+        <Card title={`DvP sequence: ${at ? "OeKB CSD + Pontes (EUR, central-bank money)" : "Seturion → OeKB CSD (USD settlement token)"}`}>
           <ol className="space-y-2.5">
             {seq.map(([who, what], k) => (
               <li key={k} className="flex gap-3 text-[13px]">
@@ -288,7 +294,7 @@ function Settle({ id, settle }: { id: string; settle: (id: string) => void }) {
             <div className="mt-4 flex flex-wrap gap-2">
               <Link href="/registrar/" className="btn btn-sm">See the register →</Link>
               <Link href="/secondary/" className="btn btn-sm">Trade on Seturion →</Link>
-              {at && <Link href="/eligibility/" className="btn btn-sm">Pledge to OeNB →</Link>}
+              {at && issuer.country !== "GB" && <Link href="/eligibility/" className="btn btn-sm">Pledge to OeNB →</Link>}
             </div>
           )}
         </Card>

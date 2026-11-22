@@ -119,7 +119,7 @@ function Live() {
           The register comes into existence when the tranche settles.
           <div className="mt-3 flex gap-2">
             <button className="btn btn-primary btn-sm" onClick={() => { if (b.status === "draft") st.price(id, issuer.fairSpread + 5); st.settle(id); }}>Price & settle {issuer.brand} now</button>
-            <button className="btn btn-sm" onClick={st.quickIssueAll}>Issue all 13</button>
+            <button className="btn btn-sm" onClick={st.quickIssueAll}>Issue all</button>
           </div>
         </Callout>
       </div>
@@ -230,7 +230,7 @@ function Roles() {
   const roles = [
     ["DEFAULT_ADMIN_ROLE", "Issuer + registrar joint multisig (2-of-2 entities, each internally m-of-n)", "Grant / revoke roles; replaced only on registrar migration", "T&Cs; Registrar Agreement"],
     ["REGISTRAR_ROLE", "Registrar: 3-of-5 HSM-backed keys, MPC", "mint (≤ issue amount), burn on redemption, freeze, forcedTransfer, identity binding", "Ley 6/2023 Art. 8 · CMF L.211-3 · eWpG §16 · CSDR (AT)"],
-    ["CSD_OPERATOR_ROLE", "OeKB CSD (Austrian tranches only)", "Same as registrar, plus T2S realignment hooks and encumbrance for Eurosystem pledges", "CSDR · Depotgesetz"],
+    ["CSD_OPERATOR_ROLE", "OeKB CSD (issuer CSD, every tranche)", "Mints the investor-level book entries against the global position, T2S realignment hooks, encumbrance for Eurosystem pledges", "CSDR · Depotgesetz"],
     ["ISSUER_ROLE", "Issuer treasury, 2-of-3", "Request tap issues; fund coupons; trigger redemption; anchor new termsHash", "T&Cs"],
     ["SETTLEMENT_ROLE", "Seturion DLT TSS", "settleDvP(tradeId,…) between whitelisted wallets; cannot mint, burn or freeze", "DLT Pilot Regime Art. 5–6; TSS rulebook"],
     ["PAYING_AGENT_ROLE", "Cecabank", "snapshot(recordDate); distribute coupons from the funded pool", "Agency Agreement"],
@@ -272,7 +272,7 @@ function Migrate() {
   const st = useStore();
   const { s } = st;
   const [id, setId] = useState("dz");
-  const [to, setTo] = useState("LBBW Registry Services (scenario)");
+  const [to, setTo] = useState("DekaBank Registry Services (scenario)");
   const b = s.bonds[id];
   return (
     <div className="grid gap-5 xl:grid-cols-[1fr_1.1fr]">
@@ -298,7 +298,7 @@ function Migrate() {
             <li>Role swap on-chain: REGISTRAR_ROLE granted to the new registrar and revoked from the old one</li>
             <li>The successor reconciles and confirms, then transfers resume</li>
           </ol>
-          <p className="dim mt-3 text-[12px]">Austrian tranches are excluded. Changing the issuer CSD is a CSD-link or migration project, not a registrar swap.</p>
+          <p className="dim mt-3 text-[12px]">Erste and RBI are excluded: their registrar is OeKB CSD itself. Changing the issuer CSD is a CSD migration project, not a registrar swap.</p>
         </Card>
       </div>
       <EventLog bondId={id} title="Migration events" />

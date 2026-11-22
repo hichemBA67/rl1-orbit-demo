@@ -21,53 +21,66 @@ const MODULES = [
   { href: "/primary/", n: "02", t: "Primary market", d: "Steps from T-30 to T+2 per jurisdiction. Live book-building, pricing maths, allocation and atomic DvP issuance." },
   { href: "/registrar/", n: "03", t: "Registrar, technically", d: "What a 'registrar' means under each law and on-chain: register state, compliance, freezes, forced transfers, migration." },
   { href: "/secondary/", n: "04", t: "Seturion DLT TSS", d: "Order book with price-time priority, pre-trade checks, clean/dirty pricing, T+0 atomic settlement and MiFIR transparency." },
-  { href: "/eligibility/", n: "05", t: "OeKB & ECB eligibility", d: "Why Erste and RBI go through OeKB CSD. Eligibility checker, close-links and own-use rules, ECMS pledge." },
+  { href: "/eligibility/", n: "05", t: "OeKB & ECB eligibility", d: "OeKB as issuer CSD for every tranche. Eligibility checker, close-links and own-use rules, ECMS pledge." },
+  { href: "/fund/", n: "09", t: "ORBIT special fund", d: "Chartered Investment's Spezial-AIF: a basket of ORBIT bonds, NAV, subscriptions, and electronic fund units on RL1." },
   { href: "/lifecycle/", n: "06", t: "Lifecycle & servicing", d: "Coupon schedule, record dates, payments via Pontes or USD tokens, registrar migration, redemption and burn." },
   { href: "/architecture/", n: "07", t: "Architecture & contracts", d: "RL1 network, roles and keys, Solidity interfaces, ISO 20022 message map, data flows." },
   { href: "/legal/", n: "08", t: "Legal basis", d: "About 35 instruments across EU, Eurosystem, ES, FR, DE, AT, NL, GB, LU and US, with a jurisdiction matrix and glossary." },
 ];
 
 export default function Home() {
-  const { s, quickIssueAll } = useStore();
+  const { s, quickIssueAll, setPreset } = useStore();
   const router = useRouter();
   const usdCount = ISSUERS.filter((i) => s.bonds[i.id].ccy === "USD").length;
   const eurCount = ISSUERS.length - usdCount;
   const totalEur = usdCount * (PROGRAMME.size / PROGRAMME.fx) + eurCount * PROGRAMME.size;
   const capPct = (totalEur / PROGRAMME.pilotCaps.dltMiAggregateEUR) * 100;
+  const eligibleNow = ISSUERS.filter((i) => isEligible(checkEligibility({ issuer: i, ccy: s.bonds[i.id].ccy }))).length;
+  const eligibleIfEur = ISSUERS.filter((i) => isEligible(checkEligibility({ issuer: i, ccy: "EUR" }))).length;
+  const anyDraft = ISSUERS.some((i) => s.bonds[i.id].status === "draft");
 
   return (
     <>
       <PageHead
         eyebrow="Regulated Layer One · Programme demo"
-        title="RL1 ORBIT: thirteen issuers, six legal systems, one ledger"
+        title={`RL1 ORBIT: ${ISSUERS.length} issuers, six legal systems, one ledger`}
         actions={
           <>
             <button className="btn btn-primary" onClick={() => { quickIssueAll(); router.push("/secondary/"); }}>
-              ⚡ Issue all 13 & open Seturion
+              ⚡ Issue all {ISSUERS.length} & open Seturion
             </button>
             <Link href="/primary/" className="btn">Walk through primary →</Link>
           </>
         }
       >
-        Cecabank coordinates a joint DLT bond programme on RL1. Eleven institutions, including Natixis, Crédit Mutuel Alliance Fédérale (via BFCM) and NatWest, each issue a <b>USD 100m</b> 3-year senior bond
-        under the law of their home country. Erste Group and Raiffeisen Bank International issue <b>EUR 100m</b> each through{" "}
-        <b>OeKB CSD</b>, which holds the global note, assigns the AT ISINs and runs a CSD-operated DLT service. That route makes
-        them <b>Eurosystem-eligible</b>. All tranches trade and settle on the <b>Seturion DLT TSS</b>.
+        Cecabank coordinates a joint DLT bond programme on RL1. The eight RL1 banks (<b>ABN AMRO, Crédit Mutuel Alliance Fédérale, DekaBank,
+        LBBW, Natixis, DZ BANK, NatWest and Standard Chartered</b>) each issue the same <b>plain vanilla</b> bond: USD 100m, fixed coupon,
+        3-year bullet, no options. Each bond is issued under the bank&apos;s home law, and <b>Chartered Investment</b> keeps the register.
+        CaixaBank and CACEIS issue alongside them; Erste and Raiffeisen issue EUR 100m. <b>OeKB CSD rubber-stamps every tranche</b>: it is
+        issuer CSD for all 12, holds the global positions, allocates AT ISINs and runs a CSD-operated DLT service. There is no exchange
+        listing. All trading and settlement runs on the <b>Seturion DLT TSS</b>. Chartered Investment also runs an{" "}
+        <Link href="/fund/" className="text-accent underline">ORBIT special fund</Link> that buys a basket of the bonds.
       </PageHead>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        <Stat label="Issuers" value={ISSUERS.length} sub="8 members · 1 pending (NatWest) · 4 non-members" />
+        <Stat label="Issuers" value={ISSUERS.length} sub={`${ISSUERS.filter((i) => i.rl1 !== "Non-member issuer").length} RL1 banks · ${ISSUERS.filter((i) => i.rl1 === "Non-member issuer").length} non-members`} />
         <Stat label="Jurisdictions" value="6" sub="ES · FR · NL · DE · AT · GB" />
-        <Stat label="Register models" value="5" sub="ERIR · DEEP · eWpG · CSD · contractual" />
+        <Stat label="Issuer CSD" value="OeKB" sub="for all tranches · AT ISINs" tone="ok" />
         <Stat label="Programme size" value={`${compact(usdCount * 1e8)} + ${compact(eurCount * 1e8, "EUR")}`} sub={`≈ €${(totalEur / 1e9).toFixed(2)}bn`} tone="accent" />
         <Stat label="Pilot cap used" value={`${capPct.toFixed(1)}%`} sub="of Seturion's €6bn DLT MI limit" tone="ok" />
       </div>
 
       <div className="mt-6">
-        <Callout tone="warn" title="Why the Austrian tranches are in EUR, not USD">
-          Eurosystem collateral must be <b>denominated in euro</b>. A USD bond fails that criterion whichever CSD or ledger it sits on.
-          So the scenario keeps the USD 100m tranches for the other eleven issuers and gives Erste and RBI EUR 100m each. That way the
-          OeKB route makes them eligible. You can switch them to USD on the <Link href="/eligibility/" className="text-accent underline">ECB page</Link> to watch the check fail.
+        <Callout tone="warn" title="What OeKB's stamp does, and doesn't, do for ECB eligibility">
+          With OeKB as issuer CSD, <b>every</b> tranche meets the CSD criterion: issued in a CSD-operated DLT service inside an eligible, T2S-connected
+          SSS. Eligibility still needs a <b>euro</b> denomination and an <b>EEA issuer and governing law</b>. Right now {eligibleNow} of {ISSUERS.length} tranches are
+          eligible. The USD tranches fail on currency, and NatWest and Standard Chartered fail on issuer and law. Since nothing is listed on an
+          exchange, eligibility also assumes the Eurosystem accepts Seturion as an acceptable market.
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button className="btn btn-sm btn-ok" disabled={!anyDraft} onClick={() => setPreset("eur")}>Switch all EEA tranches to EUR (→ {eligibleIfEur} eligible)</button>
+            <button className="btn btn-sm" disabled={!anyDraft} onClick={() => setPreset("default")}>Back to USD 100m (default)</button>
+            {!anyDraft && <span className="dim text-[12px]">Currency is fixed once priced. Reset the simulation to change it.</span>}
+          </div>
         </Callout>
       </div>
 

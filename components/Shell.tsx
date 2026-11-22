@@ -15,6 +15,7 @@ const NAV = [
   { href: "/lifecycle/", label: "Lifecycle & servicing", n: "06" },
   { href: "/architecture/", label: "Architecture & contracts", n: "07" },
   { href: "/legal/", label: "Legal basis", n: "08" },
+  { href: "/fund/", label: "Chartered special fund", n: "09" },
 ];
 
 export function Shell({ children }: { children: ReactNode }) {

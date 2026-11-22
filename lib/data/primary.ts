@@ -22,34 +22,34 @@ export const PRIMARY_STEPS: Step[] = [
     actors: ["Issuer", "Cecabank (Coordinator)", "RL1 SCE"],
     what: [
       "The issuer mandates Cecabank as arranger and global coordinator of the RL1 ORBIT programme",
-      "Programme agreements signed: Dealer Agreement, Agency Agreement (fiscal/paying/calculation agent), Registrar Agreement, Seturion participation agreement",
+      "Programme agreements signed: Dealer Agreement, Agency Agreement (fiscal/paying/calculation agent), Registrar Agreement (Chartered Investment for the RL1 member tranches), Seturion participation agreement",
+      "OeKB CSD issuer agreement and DLT-service annex signed by every issuer. OeKB is issuer CSD for all 12 tranches, using the issuer's freedom to choose any EU CSD (CSDR Art. 49)",
       "The issuer is onboarded as an RL1 participant: LEI verified, node access through its own node or the coordinator's node, signing keys generated in HSM/MPC custody",
-      "Internal approvals: board resolution authorising the issue, ALCO funding plan, MREL planning for senior preferred",
+      "Internal approvals: board resolution authorising the issue, ALCO funding plan",
     ],
     legal: ["mifid2", "dora", "sce-reg", "mar"],
     artefacts: ["Mandate letter", "Board resolution", "RL1 participation agreement", "Key ceremony record"],
     variant: {
-      CONTRACTUAL: "With no statutory register, Cecabank is also appointed contractual registrar. The Registrar Agreement makes the RL1 register conclusive evidence of title between issuer and holders.",
-      AT_CSD_DLT: "The issuer also signs the OeKB CSD issuer agreement (choice of CSD under CSDR Art. 49) and the OeKB DLT-service annex.",
+      CONTRACTUAL: "With no statutory DLT register, Chartered Investment is appointed contractual registrar. The issuer-level register records OeKB CSD as holder of the whole issue.",
+      AT_CSD_DLT: "For Erste and RBI, OeKB CSD is registrar as well as issuer CSD, so no separate registrar is appointed.",
     },
   },
   {
     id: "docs", t: "T-25", date: "2026-11-11", title: "Documentation & disclosure",
     actors: ["Issuer", "Issuer counsel", "Dealer counsel", "Cecabank"],
     what: [
-      "Terms & Conditions drafted under the issuer's home law, with DLT-specific clauses: form of the security, identity of the registrar, smart-contract address and code hash, network-failure fallback, golden-copy precedence, forced-transfer and freeze powers, key-loss procedure",
-      "USD tranches: wholesale information memorandum. The prospectus exemptions are qualified investors only and a $200,000 minimum denomination",
+      "Plain vanilla terms for every issuer: fixed coupon, bullet at par, no call, put, step-up or conversion. Terms & Conditions drafted under the issuer's home law, with DLT-specific clauses: form of the security, identity of the registrar, smart-contract address and code hash, network-failure fallback, golden-copy precedence, forced-transfer and freeze powers, key-loss procedure",
+      "Wholesale information memorandum for every tranche: qualified investors only, minimum denomination $200,000 / €100,000. No exchange listing (Seturion only), so no approved prospectus is needed",
       "MiFID II product governance: target market is eligible counterparties and professional clients; distribution channel is institutional sales only. No PRIIPs KID, since there is no retail offer",
       "Selling restrictions: Regulation S Category 2 (no US persons; 40-day distribution compliance period), plus EEA, UK, Switzerland and Singapore legends",
     ],
     legal: ["prospectus", "mifid2", "us-regs", "rome1", "brrd"],
     artefacts: ["Information memorandum / base prospectus", "Draft Final Terms", "Subscription agreement"],
     variant: {
-      AT_CSD_DLT: "EUR tranche admitted to the Wiener Börse regulated market, so a base prospectus approved by the FMA (KMG 2019) is required, with the €100,000 denomination wholesale disclosure regime. The Final Terms name OeKB CSD as issuer CSD.",
       CONTRACTUAL: "English-law (Standard Chartered, NatWest) T&Cs contain a contractual bail-in recognition clause. Dutch-law (ABN AMRO) T&Cs define the on-chain signed instruction as the deed of assignment (BW 3:94).",
-      ES_ERIR: "The issuance document must state that the bonds are represented through a DLT registry system and name Cecabank as ERIR (Ley 6/2023 Art. 7–8).",
-      FR_DEEP: "The T&Cs state that the bonds are titres nominatifs inscribed in a DEEP (CMF L.211-3), with CACEIS Corporate Trust as teneur de registre.",
-      DE_EWPG: "Instead of depositing a certificate, the issuer deposits the Emissionsbedingungen with the registrar before the entry (eWpG §5). The bond is a Kryptowertpapier (§4(3)).",
+      ES_ERIR: "The issuance document must state that the bonds are represented through a DLT registry system and name Cecabank as ERIR (Ley 6/2023 Art. 7–8). The Final Terms name OeKB CSD as issuer CSD.",
+      FR_DEEP: "The T&Cs state that the bonds are titres nominatifs inscribed in a DEEP (CMF L.211-3), with CACEIS Corporate Trust (CACEIS) or Chartered Investment (Natixis, BFCM) as teneur de registre.",
+      DE_EWPG: "Instead of depositing a certificate, the issuer deposits the Emissionsbedingungen with the registrar before the entry (eWpG §5). The bond is a Kryptowertpapier (§4(3)) with a collective entry (§8) held for OeKB CSD. Chartered Investment is registerführende Stelle.",
     },
   },
   {
@@ -68,16 +68,16 @@ export const PRIMARY_STEPS: Step[] = [
     id: "ids", t: "T-15", date: "2026-11-21", title: "Identifiers & contract deployment",
     actors: ["NNA", "Registrar", "RL1 SCE"],
     what: [
-      "ISIN allocated by the national numbering agency (ISO 6166), plus CFI DBFUFR (ISO 10962) and FISN (ISO 18774)",
+      "OeKB, as Austria's national numbering agency and issuer CSD, allocates an AT ISIN to every tranche (ISO 6166), plus CFI DBFUFR (ISO 10962) and FISN (ISO 18774)",
       "The registrar deploys the bond contract set on RL1 from the allow-listed template: BondToken, IdentityRegistry binding, ComplianceModule rules (Reg S, KYC, investor category, min denomination) and DvPEscrow",
-      "Role grants: REGISTRAR_ROLE (registrar multisig), ISSUER_ROLE (corporate actions), SETTLEMENT_ROLE (Seturion), PAYING_AGENT_ROLE (Cecabank), plus CSD_OPERATOR_ROLE (OeKB) for the Austrian tranches",
+      "Role grants: REGISTRAR_ROLE (registrar multisig), ISSUER_ROLE (corporate actions), SETTLEMENT_ROLE (Seturion), PAYING_AGENT_ROLE (Cecabank), CSD_OPERATOR_ROLE (OeKB CSD, every tranche)",
       "Final Terms PDF hashed (keccak-256) and the hash anchored on-chain as `termsHash`",
     ],
     onchain: ["ContractDeployed(BondToken)", "RoleGranted × 4–5", "TermsAnchored(termsHash)", "IsinSet(isin)"],
     messages: ["ISIN/CFI/FISN record to ANNA Service Bureau", "Reference data → FIRDS (via the trading venue, MiFIR Art. 27)"],
     legal: ["mifir", "es-rd815", "de-ewpg", "csdr"],
     variant: {
-      AT_CSD_DLT: "OeKB, as Austria's NNA, allocates the AT ISIN. OeKB CSD (not a private registrar) deploys and operates the contract, and holds CSD_OPERATOR_ROLE.",
+      AT_CSD_DLT: "For Erste and RBI, OeKB CSD also deploys the contract and holds REGISTRAR_ROLE itself.",
       DE_EWPG: "The registrar records the register content required by eWpG §17. BaFin will publish the entry (§20).",
       ES_ERIR: "Cecabank, as ERIR, deploys and administers the register. The issue is notified to the CNMV for the ERIR list.",
     },
@@ -88,13 +88,10 @@ export const PRIMARY_STEPS: Step[] = [
     what: [
       "Application to admit the tranche to trading and settlement on the Seturion DLT TSS",
       "Pilot Regime Art. 3 checks: issue size (≈ €92.6m for USD 100m) below €1bn, and Seturion's aggregate market value of DLT instruments within the €6bn cap",
-      "Seturion receives SETTLEMENT_ROLE from the registrar. The TSS rulebook defines moment of entry, irrevocability and finality",
+      "Seturion receives SETTLEMENT_ROLE. It is the only venue: there is no exchange listing. Its settlement instructions execute through OeKB CSD's DLT service, so each transfer is also an OeKB book entry. The TSS rulebook and OeKB's rules jointly define moment of entry, irrevocability and finality",
       "Choice of cash-settlement asset recorded: USD tokenised commercial-bank deposit (settlement bank) or USD e-money token; EUR through Pontes",
     ],
     legal: ["dlt-pilot", "sfd", "mifir", "mica"],
-    variant: {
-      AT_CSD_DLT: "Also listed on the Wiener Börse Official Market (BörseG 2018), an acceptable market for the Eurosystem. Seturion trades the bonds with settlement going through the OeKB CSD-operated contract.",
-    },
   },
   {
     id: "onboard", t: "T-5", date: "2026-12-01", title: "Investor onboarding & whitelisting",
@@ -133,14 +130,12 @@ export const PRIMARY_STEPS: Step[] = [
     actors: ["Registrar", "Investors' custodians", "Cash settlement agent"],
     what: [
       "Investors pre-fund the cash leg: USD settlement tokens moved into DvPEscrow, or EUR Pontes payment instruction prepared",
-      "The registrar verifies conditions precedent (signed Final Terms, legal opinions delivered, closing certificate) and mints the full issue to DvPEscrow. Supply then equals the issue amount exactly (integrity of the issue)",
+      "The registrar verifies conditions precedent (signed Final Terms, legal opinions delivered, closing certificate) and records OeKB CSD as holder of the whole issue (global note or collective entry)",
+      "OeKB CSD then mints the investor-level book-entry tokens to DvPEscrow. totalSupply equals the global position exactly (CSDR Art. 37 integrity of the issue)",
     ],
     onchain: ["Issued(escrow, 100,000,000)", "CashLocked(investor, amount)"],
     messages: ["sese.023 settlement instructions (custodian → registrar/venue)", "sese.024 status advice (matched)"],
     legal: ["csdr", "dlt-pilot"],
-    variant: {
-      AT_CSD_DLT: "OeKB CSD receives the signed global note (Sammelurkunde) into collective custody first, then mints the book-entry tokens. On-chain supply must equal the global-note amount (CSDR Art. 37).",
-    },
   },
   {
     id: "settle", t: "T+2", date: "2026-12-10", title: "DvP settlement (issue date)",
@@ -154,7 +149,7 @@ export const PRIMARY_STEPS: Step[] = [
     messages: ["sese.025 settlement confirmation", "camt.054 cash credit notification", "semt.002 statement of holdings"],
     legal: ["sfd", "dlt-pilot", "csdr"],
     variant: {
-      AT_CSD_DLT: "EUR leg in central-bank money through Pontes. The token is locked, a pacs.009 settles in T2, and the confirmation releases the token. Finality comes from T2 plus the OeKB CSD book entry.",
+      AT_CSD_DLT: "EUR tranche: cash leg in central-bank money through Pontes. The token is locked, a pacs.009 settles in T2, and the confirmation releases the token. Finality comes from T2 plus the OeKB CSD book entry.",
     },
   },
   {
@@ -163,7 +158,7 @@ export const PRIMARY_STEPS: Step[] = [
     what: [
       "FIRDS reference data, MiFIR transaction reports by investment firms (Art. 26), venue post-trade publication",
       "ES: the CNMV ERIR list shows Cecabank for the CaixaBank ISIN. DE: BaFin publishes each crypto security (eWpG §20). FR: DEEP register extract",
-      "AT: OeKB submits the eligibility data to OeNB. After Eurosystem assessment the ISINs are added to the Eligible Assets Database (EADB)",
+      "OeKB submits eligibility data to OeNB for every tranche that also meets the non-CSD criteria (EUR, EEA issuer and law). In this configuration those are Erste and RBI, plus any EEA issuer switched to EUR. After assessment the ISINs go into the Eligible Assets Database (EADB)",
     ],
     legal: ["mifir", "es-rd815", "de-ewpg", "ecb-gd", "ecb-dlt-2026"],
   },
@@ -195,6 +190,10 @@ export function generateBook(issuer: IssuerDef, ccy: "USD" | "EUR"): Order[] {
     if (o) o.limitBp = Math.min(o.limitBp, issuer.fairSpread - 5);
     else orders.push({ investorId: cross, amount: 15_000_000, limitBp: issuer.fairSpread - 5 });
   }
+  // The Chartered Investment special fund anchors every book (basket strategy).
+  const f = orders.find((o) => o.investorId === "ci-fund");
+  if (f) { f.amount = 12_000_000; f.limitBp = Math.min(f.limitBp, issuer.fairSpread - 3); }
+  else orders.push({ investorId: "ci-fund", amount: 12_000_000, limitBp: issuer.fairSpread - 3 });
   // Ensure the blocked investors appear so compliance rejections are visible.
   if (!orders.find((o) => o.investorId === "hudson")) orders.push({ investorId: "hudson", amount: 10_000_000, limitBp: issuer.fairSpread - 4 });
   if (!orders.find((o) => o.investorId === "baltic")) orders.push({ investorId: "baltic", amount: 5_000_000, limitBp: issuer.fairSpread });

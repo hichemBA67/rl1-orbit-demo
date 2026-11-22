@@ -70,8 +70,9 @@ export const makeIsin = (country: string, nsin9: string) => {
 export const ccySymbol = (c: string) => (c === "USD" ? "$" : c === "EUR" ? "€" : c + " ");
 export function money(v: number, ccy = "USD", digits = 0) {
   return (
+    (v < 0 ? "−" : "") +
     ccySymbol(ccy) +
-    v.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })
+    Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })
   );
 }
 export function compact(v: number, ccy = "USD") {

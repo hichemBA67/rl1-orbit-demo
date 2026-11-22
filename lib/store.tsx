@@ -2,11 +2,12 @@
 // Global simulation state shared by every page: bonds, the on-chain register,
 // the Seturion order book, Eurosystem pledges and the RL1 event log.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ISSUERS, PROGRAMME, INVESTORS, investorById, issuerById, isinOf, termsFor, walletOf, type IssuerDef } from "./data/scenario";
+import { COUNTRY, ISSUERS, PROGRAMME, INVESTORS, investorById, issuerById, isinOf, termsFor, walletOf, type IssuerDef } from "./data/scenario";
 import { allocate, generateBook } from "./data/primary";
 import { accrued, couponAmount, couponFromYield, priceFromYield, couponSchedule } from "./finance";
 import { addressOf, hash32, money } from "./util";
 import { checkEligibility, isEligible, pledgeCheck } from "./eligibility";
+import { fundValuation, initialFund, type FundState } from "./fund";
 
 export type BondStatus = "draft" | "priced" | "settled" | "redeemed";
 export interface BondState {
@@ -51,9 +52,10 @@ export interface State {
   block: number;
   seq: number;
   tradeDate: string;
+  fund: FundState;
 }
 
-const VERSION = 5;
+const VERSION = 8;
 const KEY = "rl1-orbit-state-v" + VERSION;
 
 export const ESCROW = "dvp-escrow";
@@ -72,7 +74,7 @@ function initial(): State {
       couponsPaid: [],
     };
   }
-  return { v: VERSION, bonds, hold: {}, events: [], orders: [], trades: [], pledges: [], block: 4_812_330, seq: 0, tradeDate: "2026-12-11" };
+  return { v: VERSION, bonds, hold: {}, events: [], orders: [], trades: [], pledges: [], block: 4_812_330, seq: 0, tradeDate: "2026-12-11", fund: initialFund() };
 }
 
 // ---------------------------------------------------------------------------
@@ -182,6 +184,9 @@ interface Api {
   release: (pledgeId: string) => void;
   redeem: (bondId: string) => void;
   reset: () => void;
+  setPreset: (p: "eur" | "default") => void;
+  fundSubscribe: (investorId: string, usd: number) => { ok: boolean; msg: string };
+  fundRedeem: (investorId: string, units: number) => { ok: boolean; msg: string };
 }
 
 const Ctx = createContext<Api | null>(null);
@@ -226,7 +231,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     Object.assign(b, { status: "priced", spreadBp, yieldPct: y, couponPct: c, price, allocations, demand });
     const ts = PROGRAMME.pricingDate + "T15:30:00Z";
     pushEv(d, { ts, bondId: id, type: "ContractDeployed", actor: b.registrarName, detail: `BondToken ${isinOf(issuer)} deployed at ${b.contract}`, ok: true });
-    pushEv(d, { ts, bondId: id, type: "RoleGranted", actor: b.registrarName, detail: `REGISTRAR_ROLE, ISSUER_ROLE, SETTLEMENT_ROLE→${issuer.registerModel === "AT_CSD_DLT" ? "OeKB CSD (CSD_OPERATOR_ROLE)" : "Seturion"}, PAYING_AGENT_ROLE→Cecabank`, ok: true }, false);
+    pushEv(d, { ts, bondId: id, type: "RoleGranted", actor: b.registrarName, detail: `REGISTRAR_ROLE, ISSUER_ROLE, SETTLEMENT_ROLE→Seturion, CSD_OPERATOR_ROLE→OeKB CSD, PAYING_AGENT_ROLE→Cecabank`, ok: true }, false);
     pushEv(d, { ts, bondId: id, type: "TermsAnchored", actor: issuer.brand, detail: `Final Terms priced: coupon ${c.toFixed(3)}%, re-offer ${price.toFixed(3)}, yield ${y.toFixed(3)}%, termsHash ${hash32("terms" + id).slice(0, 18)}…`, ok: true });
   };
 
@@ -235,11 +240,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const b = d.bonds[id];
     if (b.status !== "priced" || !b.allocations) return;
     const ts0 = PROGRAMME.issueDate + "T09:00:00Z";
-    const at = issuer.registerModel === "AT_CSD_DLT";
-    if (at) pushEv(d, { ts: ts0, bondId: id, type: "GlobalNoteLodged", actor: "OeKB CSD", detail: `Sammelurkunde ${b.ccy} ${PROGRAMME.size.toLocaleString()} lodged in collective custody`, ok: true });
+    const at = b.ccy === "EUR"; // EUR cash leg via Pontes
+    pushEv(d, { ts: ts0, bondId: id, type: "GlobalNoteLodged", actor: "OeKB CSD", detail: `${issuer.law} issue ${b.ccy} ${PROGRAMME.size.toLocaleString()}: OeKB CSD recorded as holder of the whole issue (issuer CSD); ISIN ${isinOf(issuer)}`, ok: true });
     const minted = b.allocations.reduce((a, x) => a + x.amount, 0);
     d.hold[id] = { [ESCROW]: { bal: minted, frozen: 0, pledged: 0 } };
-    pushEv(d, { ts: ts0, bondId: id, type: "Issued", actor: b.registrarName, detail: `Minted ${money(minted, b.ccy)} to DvPEscrow; totalSupply = issue amount`, ok: true });
+    pushEv(d, { ts: ts0, bondId: id, type: "Issued", actor: "OeKB CSD (DLT service)", detail: `Minted ${money(minted, b.ccy)} to DvPEscrow; totalSupply = issue amount`, ok: true });
     let k = 0;
     for (const a of b.allocations) {
       k++;
@@ -247,7 +252,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const ts = `${PROGRAMME.issueDate}T10:${String(k).padStart(2, "0")}:00Z`;
       if (at) pushEv(d, { ts, bondId: id, type: "PontesLock", actor: "OeKB CSD", detail: `Lock ${money(a.amount, b.ccy)} for ${holderName(a.investorId)}; pacs.009 ${money(cash, "EUR", 2)} to T2`, ok: true });
       applyMove(d, id, ESCROW, a.investorId, a.amount);
-      pushEv(d, { ts, bondId: id, type: "DvPSettled", actor: at ? "OeKB CSD / Pontes" : "Seturion TSS", detail: `${money(a.amount, b.ccy)} → ${holderName(a.investorId)} vs ${money(cash, b.ccy, 2)} (${b.ccy === "USD" ? "USD settlement token" : "T2 central-bank money"})`, ok: true }, !at);
+      pushEv(d, { ts, bondId: id, type: "DvPSettled", actor: at ? "Seturion → OeKB CSD / Pontes" : "Seturion → OeKB CSD", detail: `${money(a.amount, b.ccy)} → ${holderName(a.investorId)} vs ${money(cash, b.ccy, 2)} (${b.ccy === "USD" ? "USD settlement token" : "T2 central-bank money"})`, ok: true }, !at);
     }
     b.status = "settled";
     pushEv(d, { ts: PROGRAMME.issueDate + "T11:00:00Z", bondId: id, type: "IssuanceClosed", actor: b.registrarName, detail: `${b.allocations.length} holders registered; proceeds ${money((minted * (b.price ?? 100)) / 100, b.ccy, 2)} to issuer`, ok: true });
@@ -458,6 +463,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         pushEv(d, { ts: PROGRAMME.maturityDate + "T11:00:00Z", bondId, type: "Matured", actor: b.registrarName, detail: "totalSupply = 0. Contract archived, register closed, delisted from Seturion", ok: true });
       }),
     reset: () => mut((d) => { Object.assign(d, initial()); }),
+    setPreset: (p) =>
+      mut((d) => {
+        for (const i of ISSUERS) {
+          const b = d.bonds[i.id];
+          if (b.status !== "draft") continue;
+          b.ccy = p === "eur" ? (COUNTRY[i.country].eea ? "EUR" : "USD") : i.defaultCcy;
+        }
+      }),
+    fundSubscribe: (investorId, usd) =>
+      mut((d) => {
+        const inv = investorById(investorId);
+        if (!inv) return { ok: false, msg: "Unknown investor" };
+        if (inv.usPerson) return { ok: false, msg: "Rejected: US person (fund units are offered under Reg S)" };
+        if (inv.kycValidUntil < d.tradeDate) return { ok: false, msg: `Rejected: KYC expired ${inv.kycValidUntil}` };
+        if (usd < 200_000) return { ok: false, msg: "Minimum subscription for semi-professional investors is EUR 200,000 (KAGB §1(19) no. 33); professional investors can subscribe less, but the demo uses $200,000" };
+        const { navPerUnit } = fundValuation(d);
+        const units = usd / navPerUnit;
+        d.fund.units[investorId] = (d.fund.units[investorId] ?? 0) + units;
+        d.fund.netSubs += usd;
+        pushEv(d, { ts: d.tradeDate + "T16:00:00Z", type: "FundUnitsIssued", actor: "Chartered Investment (unit registrar)", detail: `${inv.name} subscribes ${money(usd, "USD")} → ${units.toFixed(4)} electronic units @ NAV ${navPerUnit.toFixed(4)}`, ok: true });
+        return { ok: true, msg: `Issued ${units.toFixed(4)} units at NAV ${navPerUnit.toFixed(4)}` };
+      }),
+    fundRedeem: (investorId, units) =>
+      mut((d) => {
+        const have = d.fund.units[investorId] ?? 0;
+        if (units <= 0 || units > have + 1e-9) return { ok: false, msg: `Holder has ${have.toFixed(4)} units` };
+        const { navPerUnit, cash } = fundValuation(d);
+        const usd = units * navPerUnit;
+        if (usd > cash) return { ok: false, msg: `Fund cash ${money(cash, "USD")} is insufficient. The KVG would sell bonds on Seturion first (liquidity management, KAGB §30)` };
+        d.fund.units[investorId] = have - units;
+        if (d.fund.units[investorId] < 1e-9) delete d.fund.units[investorId];
+        d.fund.netSubs -= usd;
+        pushEv(d, { ts: d.tradeDate + "T16:00:00Z", type: "FundUnitsRedeemed", actor: "Chartered Investment (unit registrar)", detail: `${holderName(investorId)} redeems ${units.toFixed(4)} units → ${money(usd, "USD", 2)}`, ok: true });
+        return { ok: true, msg: `Redeemed for ${money(usd, "USD", 2)}` };
+      }),
   }), [s, ready, mut]);
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

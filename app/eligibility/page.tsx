@@ -12,10 +12,10 @@ export default function Eligibility() {
   const [tab, setTab] = useState<T>("oekb");
   return (
     <>
-      <PageHead eyebrow="05 · OeKB CSD & Eurosystem" title="How OeKB's “rubber stamp” makes Erste and RBI ECB-eligible">
+      <PageHead eyebrow="05 · OeKB CSD & Eurosystem" title="OeKB’s “rubber stamp” on every tranche">
         Since <b>30 March 2026</b> the Eurosystem accepts DLT-based marketable assets <b>issued through CSD-operated DLT services</b>, provided they
         meet every standard criterion and sit in an eligible SSS reachable via T2S (ECB, 27 Jan 2026). Assets that exist only on DLT, outside eligible
-        SSSs, are still under study. OeKB CSD is the bridge between those two categories.
+        SSSs, are still under study. OeKB CSD is issuer CSD for <b>all 12 tranches</b>, so every bond passes the CSD criterion. That is necessary but not enough: a tranche must also be in <b>EUR</b> with an <b>EEA issuer and governing law</b>. Today that means Erste and RBI. Switch any EEA tranche to EUR on the Primary page before pricing and it becomes eligible too.
       </PageHead>
       <Tabs<T> value={tab} onChange={setTab} tabs={[{ id: "oekb", label: "What OeKB does" }, { id: "check", label: "Eligibility checker (what-if)" }, { id: "matrix", label: "All tranches" }, { id: "pledge", label: "Pledge via ECMS" }]} />
       {tab === "oekb" && <Oekb />}
@@ -28,10 +28,10 @@ export default function Eligibility() {
 
 function Oekb() {
   const items = [
-    ["Issuer CSD", "Erste and RBI choose OeKB CSD as issuer CSD (CSDR Art. 49). OeKB performs the notary and central-maintenance services for the issue."],
-    ["Global note in collective custody", "The signed Sammelurkunde for EUR 100m is deposited with OeKB in collective custody (Depotgesetz). Legal title rests on Austrian custody law, which works without any Austrian DLT-securities statute."],
+    ["Issuer CSD for all 12", "Every issuer, from ABN AMRO to Standard Chartered, chooses OeKB CSD as issuer CSD (CSDR Art. 49: freedom to choose any EU CSD; the issuer's home corporate law still applies). OeKB performs the notary and central-maintenance services for every issue."],
+    ["Global note or collective entry", "Austrian-law tranches: signed Sammelurkunde in collective custody (Depotgesetz). Other tranches: the home-law register (eWpG collective entry, DEEP, ERIR or contractual register) kept by the registrar records OeKB CSD as holder of the whole issue. Investors hold through OeKB book entries."],
     ["CSD-operated DLT service", "OeKB deploys and operates the BondToken on RL1 under CSD_OPERATOR_ROLE. Token balances are OeKB's book entries. Transfers settled by Seturion run through OeKB's contract and are CSD book-entry movements."],
-    ["ISIN as national numbering agency", "OeKB allocates AT0000ORBE1x and AT0000ORBR2x (illustrative). An AT ISIN at an Austrian CSD signals place of issue in the EEA."],
+    ["ISIN as national numbering agency", "OeKB allocates AT0000ORB… ISINs to all 12 tranches (illustrative). Issue in an EEA CSD satisfies the place-of-issue criterion."],
     ["Integrity of issue", "Intraday reconciliation: Σ token balances = global-note amount (CSDR Art. 37). A mismatch pauses the contract."],
     ["T2S reachability", "Positions can be realigned to Eurosystem collateral accounts via T2S. ECMS sees the asset like any other OeKB-issued bond."],
     ["Eligibility submission", "OeKB/the issuer submits the eligibility request to OeNB. After assessment the ISINs are added to the Eligible Assets Database."],
@@ -63,7 +63,7 @@ function Oekb() {
             ))}
           </ol>
         </Card>
-        <LegalRefs ids={["ecb-gd", "ecb-dlt-2026", "csdr", "at-depg", "pontes", "at-boerseg"]} />
+        <LegalRefs ids={["ecb-gd", "ecb-dlt-2026", "csdr", "at-depg", "pontes"]} />
       </div>
     </div>
   );
@@ -74,16 +74,15 @@ function Checker() {
   const [id, setId] = useState("erste");
   const issuer = issuerById(id);
   const [ccy, setCcy] = useState<"USD" | "EUR">(s.bonds[id].ccy);
-  const [route, setRoute] = useState<"AT_CSD_DLT" | "PILOT_ONLY">(issuer.registerModel === "AT_CSD_DLT" ? "AT_CSD_DLT" : "PILOT_ONLY");
-  const [reg, setReg] = useState(issuer.registerModel === "AT_CSD_DLT");
+  const [route, setRoute] = useState<"AT_CSD_DLT" | "PILOT_ONLY">("AT_CSD_DLT");
+  const [reg, setReg] = useState(true);
   const pick = (x: string) => {
     const i = issuerById(x);
     setId(x);
     setCcy(s.bonds[x].ccy);
-    setRoute(i.registerModel === "AT_CSD_DLT" ? "AT_CSD_DLT" : "PILOT_ONLY");
-    setReg(i.registerModel === "AT_CSD_DLT");
+    setRoute("AT_CSD_DLT");
   };
-  const crit = checkEligibility({ issuer, ccy, routeOverride: route, listedRegulated: reg });
+  const crit = checkEligibility({ issuer, ccy, routeOverride: route, seturionAccepted: reg });
   const ok = isEligible(crit);
   return (
     <div className="grid gap-5 xl:grid-cols-[340px_1fr]">
@@ -97,8 +96,9 @@ function Checker() {
               <button className={cx("btn btn-sm", route === "AT_CSD_DLT" && "btn-primary")} onClick={() => setRoute("AT_CSD_DLT")}>CSD-operated DLT (e.g. OeKB CSD)</button>
               <button className={cx("btn btn-sm", route === "PILOT_ONLY" && "btn-primary")} onClick={() => setRoute("PILOT_ONLY")}>DLT register / Pilot TSS only</button>
             </div></div>
-          <div><label className="lbl">Regulated-market listing</label>
-            <div className="flex gap-1"><button className={cx("btn btn-sm flex-1", reg && "btn-primary")} onClick={() => setReg(true)}>Yes</button><button className={cx("btn btn-sm flex-1", !reg && "btn-primary")} onClick={() => setReg(false)}>No</button></div></div>
+          <div><label className="lbl">Seturion accepted as acceptable market?</label>
+            <div className="flex gap-1"><button className={cx("btn btn-sm flex-1", reg && "btn-primary")} onClick={() => setReg(true)}>Yes (assumed)</button><button className={cx("btn btn-sm flex-1", !reg && "btn-primary")} onClick={() => setReg(false)}>No</button></div>
+            <p className="dim mt-1 text-[11.5px]">There is no exchange listing. Eurosystem eligibility therefore depends on the Eurosystem accepting Seturion as a non-regulated market. The scenario assumes it does.</p></div>
           <p className="dim text-[11.5px]">These toggles are hypothetical. They do not change the simulated tranche. The real currency of a draft tranche is set on the Primary page.</p>
         </div>
       </Card>
@@ -174,7 +174,7 @@ function PledgeSim() {
             </div>
           ) : (
             <div className="grid gap-3">
-              <BondPicker value={id} onChange={setId} filter={(x) => issuerById(x).registerModel === "AT_CSD_DLT"} />
+              <BondPicker value={id} onChange={setId} filter={(x) => isEligible(checkEligibility({ issuer: issuerById(x), ccy: s.bonds[x].ccy }))} />
               <div><label className="lbl">Pledgor (holder)</label>
                 <select className="select" value={pledgorEff} onChange={(e) => setPledgor(e.target.value)}>
                   {holders.map(([h, v]) => <option key={h} value={h}>{holderName(h)} · {money(v.bal - v.pledged - v.frozen, b.ccy)} free</option>)}

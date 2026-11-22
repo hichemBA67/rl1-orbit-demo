@@ -24,7 +24,7 @@ interface ICompliance {
 
 contract OrbitBondToken is AccessControl {
     bytes32 public constant REGISTRAR_ROLE     = keccak256("REGISTRAR_ROLE");     // ERIR / teneur de registre / registerführende Stelle
-    bytes32 public constant CSD_OPERATOR_ROLE  = keccak256("CSD_OPERATOR_ROLE");  // OeKB CSD (AT tranches)
+    bytes32 public constant CSD_OPERATOR_ROLE  = keccak256("CSD_OPERATOR_ROLE");  // OeKB CSD (issuer CSD, all tranches)
     bytes32 public constant ISSUER_ROLE        = keccak256("ISSUER_ROLE");
     bytes32 public constant SETTLEMENT_ROLE    = keccak256("SETTLEMENT_ROLE");    // Seturion DLT TSS
     bytes32 public constant PAYING_AGENT_ROLE  = keccak256("PAYING_AGENT_ROLE");  // Cecabank
@@ -270,7 +270,7 @@ function Addresses() {
                 <td className="mono">{isinOf(i)}</td>
                 <td><Hash v={s.bonds[i.id].contract} n={8} /></td>
                 <td className="muted">{s.bonds[i.id].registrarName}</td>
-                <td className="muted">{i.registerModel === "AT_CSD_DLT" ? "OeKB CSD + Seturion" : "Seturion"}</td>
+                <td className="muted">{"Seturion (venue) · OeKB CSD (CSD_OPERATOR_ROLE)"}</td>
               </tr>
             ))}
             <tr><td>Shared</td><td>IdentityRegistry</td><td><Hash v={addressOf("identity")} n={8} /></td><td colSpan={2} className="muted">Claim issuers: registrars & custodians</td></tr>

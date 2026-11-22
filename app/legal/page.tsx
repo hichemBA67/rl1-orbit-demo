@@ -97,7 +97,7 @@ export default function Legal() {
             <div className="space-y-4 text-[13.5px]">
               <div><div className="font-semibold">1 · Contract: what does the issuer owe?</div><p className="muted mt-1">Governed by the chosen law of the T&Cs (Rome I Art. 3): Spanish for CaixaBank, French for CACEIS/Natixis/BFCM, Dutch for ABN AMRO, German for Deka/DZ/LBBW/Chartered, Austrian for Erste/RBI, English for Standard Chartered and NatWest.</p></div>
               <div><div className="font-semibold">2 · Property: who owns the bond, and how does it transfer?</div><p className="muted mt-1">For securities recorded in a register or account, the SFD (Art. 9(2)) and the FCD (Art. 9) point to the law of the place where the register or account is maintained. On a distributed ledger that place has to be <i>designated</i>. ORBIT fixes it through the statutory regime (the ERIR's Spain, the DEEP's France, the eWpG register's Germany, OeKB's Austria) and repeats it in the T&Cs and the TSS rulebook.</p></div>
-              <div><div className="font-semibold">3 · Finality: when is a transfer irrevocable?</div><p className="muted mt-1">The rules of the designated system: Seturion's rulebook, plus TARGET rules for Pontes legs and OeKB/T2S rules for the Austrian tranches (SFD Art. 3, 5).</p></div>
+              <div><div className="font-semibold">3 · Finality: when is a transfer irrevocable?</div><p className="muted mt-1">The rules of the designated system: Seturion's rulebook, plus TARGET rules for Pontes legs and OeKB/T2S rules for every tranche, since OeKB is issuer CSD for all (SFD Art. 3, 5).</p></div>
             </div>
           </Card>
           <div className="space-y-5">
@@ -106,7 +106,7 @@ export default function Legal() {
                 <li>Dutch-law registered notes: does an on-chain signed instruction satisfy the deed of assignment and notification under BW 3:94?</li>
                 <li>English-law notes traded on an EU DLT TSS: recognition of the English register in EU insolvency proceedings</li>
                 <li>A French DEEP and a German crypto register on the same ledger: each tranche must name its own register location; validators' locations are irrelevant</li>
-                <li>Austrian tranche held through Seturion participants: the chain from OeKB's book entry to the investor's custodian account</li>
+                <li>Non-Austrian bonds deposited with an Austrian CSD: the home-law register records OeKB as holder, while investors' rights are co-ownership in OeKB's collective holding under Austrian law. Both layers must be reconciled in the opinions</li>
               </ul>
             </Callout>
             <Callout tone="accent" title="Design rule used in ORBIT">

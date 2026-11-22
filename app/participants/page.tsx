@@ -8,15 +8,15 @@ type T = "infra" | "issuers" | "investors" | "raci";
 
 const RACI: { act: string; cells: Record<string, string> }[] = [
   { act: "Mandate, book-building, allocation", cells: { Issuer: "A", Cecabank: "R", Registrar: "", Seturion: "", "OeKB CSD": "", RL1: "", Eurosystem: "" } },
-  { act: "T&Cs under home law", cells: { Issuer: "A/R", Cecabank: "C", Registrar: "C", Seturion: "", "OeKB CSD": "C (AT)", RL1: "", Eurosystem: "" } },
-  { act: "ISIN / CFI / FISN", cells: { Issuer: "I", Cecabank: "C", Registrar: "R", Seturion: "I", "OeKB CSD": "R (AT NNA)", RL1: "", Eurosystem: "" } },
-  { act: "Deploy contract & grant roles", cells: { Issuer: "A", Cecabank: "I", Registrar: "R", Seturion: "I", "OeKB CSD": "R (AT)", RL1: "C", Eurosystem: "" } },
-  { act: "Investor whitelisting (KYC claims)", cells: { Issuer: "", Cecabank: "R (own clients)", Registrar: "A", Seturion: "C", "OeKB CSD": "A (AT)", RL1: "", Eurosystem: "" } },
-  { act: "Mint / integrity of issue", cells: { Issuer: "I", Cecabank: "", Registrar: "A/R", Seturion: "", "OeKB CSD": "A/R (AT)", RL1: "", Eurosystem: "" } },
-  { act: "Primary DvP", cells: { Issuer: "I", Cecabank: "C", Registrar: "A", Seturion: "R", "OeKB CSD": "R (AT)", RL1: "C", Eurosystem: "R (EUR cash)" } },
-  { act: "Secondary trading & settlement", cells: { Issuer: "", Cecabank: "", Registrar: "I", Seturion: "A/R", "OeKB CSD": "C (AT)", RL1: "C", Eurosystem: "" } },
-  { act: "Freeze / forced transfer", cells: { Issuer: "C", Cecabank: "", Registrar: "A/R", Seturion: "I", "OeKB CSD": "A/R (AT)", RL1: "", Eurosystem: "" } },
-  { act: "Coupons & redemption", cells: { Issuer: "A (funds)", Cecabank: "R (paying agent)", Registrar: "C (snapshot)", Seturion: "", "OeKB CSD": "R (AT)", RL1: "", Eurosystem: "R (EUR via Pontes)" } },
+  { act: "T&Cs under home law", cells: { Issuer: "A/R", Cecabank: "C", Registrar: "C", Seturion: "", "OeKB CSD": "C", RL1: "", Eurosystem: "" } },
+  { act: "ISIN / CFI / FISN", cells: { Issuer: "I", Cecabank: "C", Registrar: "R", Seturion: "I", "OeKB CSD": "R (NNA, all)", RL1: "", Eurosystem: "" } },
+  { act: "Deploy contract & grant roles", cells: { Issuer: "A", Cecabank: "I", Registrar: "R", Seturion: "I", "OeKB CSD": "R", RL1: "C", Eurosystem: "" } },
+  { act: "Investor whitelisting (KYC claims)", cells: { Issuer: "", Cecabank: "R (own clients)", Registrar: "A", Seturion: "C", "OeKB CSD": "A ", RL1: "", Eurosystem: "" } },
+  { act: "Mint / integrity of issue", cells: { Issuer: "I", Cecabank: "", Registrar: "A/R", Seturion: "", "OeKB CSD": "A/R ", RL1: "", Eurosystem: "" } },
+  { act: "Primary DvP", cells: { Issuer: "I", Cecabank: "C", Registrar: "A", Seturion: "R", "OeKB CSD": "R ", RL1: "C", Eurosystem: "R (EUR cash)" } },
+  { act: "Secondary trading & settlement", cells: { Issuer: "", Cecabank: "", Registrar: "I", Seturion: "A/R", "OeKB CSD": "C", RL1: "C", Eurosystem: "" } },
+  { act: "Freeze / forced transfer", cells: { Issuer: "C", Cecabank: "", Registrar: "A/R", Seturion: "I", "OeKB CSD": "A/R ", RL1: "", Eurosystem: "" } },
+  { act: "Coupons & redemption", cells: { Issuer: "A (funds)", Cecabank: "R (paying agent)", Registrar: "C (snapshot)", Seturion: "", "OeKB CSD": "R ", RL1: "", Eurosystem: "R (EUR via Pontes)" } },
   { act: "Eurosystem eligibility & pledges", cells: { Issuer: "C", Cecabank: "", Registrar: "", Seturion: "", "OeKB CSD": "R", RL1: "", Eurosystem: "A" } },
   { act: "Network operation, finality", cells: { Issuer: "", Cecabank: "", Registrar: "", Seturion: "", "OeKB CSD": "", RL1: "A/R", Eurosystem: "" } },
 ];
@@ -58,12 +58,13 @@ export default function Participants() {
       {tab === "issuers" && (
         <div className="grid gap-4 xl:grid-cols-2">
           {ISSUERS.map((i) => (
-            <Card key={i.id} title={<span>{COUNTRY[i.country].flag} {i.issuer}</span>} right={<span className={cx("chip", i.rl1 === "Non-member issuer" ? "" : i.rl1 === "Pending member" ? "chip-warn" : "chip-accent")}>{i.rl1}</span>}>
+            <Card key={i.id} title={<span>{COUNTRY[i.country].flag} {i.issuer}</span>} right={<span className={cx("chip", i.rl1 === "Non-member issuer" ? "" : i.rl1 === "Pending member" ? "chip-warn" : i.rl1 === "Supporter" ? "chip-violet" : "chip-accent")}>{i.rl1}</span>}>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12.5px]">
                 <div><span className="dim">Governing law · </span>{i.law}</div>
                 <div><span className="dim">ISIN · </span><span className="mono">{isinOf(i)}</span></div>
                 <div><span className="dim">Registrar · </span>{i.registrarName}</div>
                 <div><span className="dim">Seniority · </span>{i.seniority}</div>
+                {i.guarantee && <div className="col-span-2"><span className="dim">Guarantee · </span>{i.guarantee}</div>}
                 <div><span className="dim">Supervisor · </span>{i.supervisor}</div>
                 <div><span className="dim">Rating (assumed) · </span>{i.rating}</div>
                 <div className="col-span-2"><span className="dim">Resolution · </span>{i.bailIn}</div>

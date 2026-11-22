@@ -49,7 +49,7 @@ export default function Secondary() {
           Only settled tranches are admitted to trading.
           <div className="mt-3 flex gap-2">
             <button className="btn btn-primary btn-sm" onClick={() => { if (b.status === "draft") st.price(id, issuer.fairSpread + 5); st.settle(id); }}>Price & settle {issuer.brand}</button>
-            <button className="btn btn-sm" onClick={st.quickIssueAll}>Issue all 13</button>
+            <button className="btn btn-sm" onClick={st.quickIssueAll}>Issue all</button>
           </div>
         </Callout>
       ) : (
@@ -180,7 +180,7 @@ function Lifecycle() {
     ["Matching", "Continuous price-time priority. A trade executes at the price of the resting order. No discretion (MiFID II Art. 18–19 non-discretionary rules).", ["mifid2"]],
     ["Atomic settlement", "The matching engine calls DvPEscrow.settleDvP(tradeId, seller, buyer, nominal, cash) with SETTLEMENT_ROLE. One transaction moves both the bond token and the USD token (or, for EUR, locks the bond and triggers Pontes).", ["dlt-pilot", "csdr"]],
     ["Finality", "Once the block is committed under BFT consensus, the transfer is irrevocable under the TSS rules. As a designated system, insolvency proceedings cannot unwind it (SFD Art. 3 and 5).", ["sfd"]],
-    ["Register update", "For ES/FR/DE tranches the RL1 state is the legal register, so no separate registrar step is needed. For AT tranches the transfer is the OeKB CSD book entry, executed through the CSD-operated contract.", ["es-lmvsi", "fr-cmf", "de-ewpg", "at-depg"]],
+    ["Register update", "OeKB CSD is issuer CSD for every tranche, so each RL1 transfer is an OeKB book entry executed through its CSD-operated contract. The registrar's issuer-level register is unchanged: it records OeKB as holder of the whole issue.", ["es-lmvsi", "fr-cmf", "de-ewpg", "at-depg"]],
     ["Post-trade", "Trade published under MiFIR Art. 10 (or deferred under Art. 11). Members file Art. 26 transaction reports. Surveillance runs under MAR.", ["mifir", "mar"]],
   ] as const;
   return (
@@ -210,7 +210,7 @@ function Lifecycle() {
           </table>
         </Card>
         <Callout title="Pilot Regime limits that Seturion monitors">
-          Bonds with an issue size below €1bn may be admitted. Each ORBIT tranche is about €92.6m (USD) or €100m (EUR). The aggregate market value of all DLT financial instruments on Seturion must stay ≤ €6bn, and ORBIT uses about €1.22bn of that (11 × €92.6m + 2 × €100m). If the cap is breached, the transition strategy (Art. 7(7)) kicks in.
+          Bonds with an issue size below €1bn may be admitted. Each ORBIT tranche is about €92.6m (USD) or €100m (EUR). The aggregate market value of all DLT financial instruments on Seturion must stay ≤ €6bn, and ORBIT uses about €1.13bn of that (10 × €92.6m + 2 × €100m). If the cap is breached, the transition strategy (Art. 7(7)) kicks in.
         </Callout>
       </div>
     </div>
